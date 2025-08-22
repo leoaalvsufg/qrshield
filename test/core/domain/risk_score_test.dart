@@ -148,11 +148,11 @@ void main() {
 
       final riskScore = computeRisk(payload, signals);
 
-      expect(riskScore.value, equals(15)); // Just 15 points for redirects
+      expect(riskScore.value, equals(25)); // 15 for redirects + 10 for shortener
       expect(
         riskScore.level,
-        equals(RiskScore.safe),
-      ); // Still safe with only 15 points
+        equals(RiskScore.suspicious),
+      ); // Now suspicious with 25 points
       expect(
         riskScore.reasons,
         contains('Múltiplos redirecionamentos detectados'),
@@ -187,6 +187,168 @@ void main() {
 
       expect(riskScore.value, equals(100));
       expect(riskScore.level, equals(RiskScore.danger));
+    });
+
+    test('should detect financial phishing with suspicious TLD', () {
+      final payload = UrlPayload(Uri.parse('http://secure-login.paypal.com.verify-user-info.ru/login'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.danger));
+      expect(riskScore.value, greaterThanOrEqualTo(50));
+      expect(riskScore.reasons, contains('Possível phishing de serviço financeiro'));
+    });
+
+    test('should detect subdomain impersonation', () {
+      final payload = UrlPayload(Uri.parse('https://paypal.com.fake-site.ru/login'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.danger));
+      expect(riskScore.reasons, contains('Subdomínio suspeito imitando serviço financeiro'));
+    });
+
+    test('should detect HTTP for financial services', () {
+      final payload = UrlPayload(Uri.parse('http://banco.example.com/login'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.suspicious));
+      expect(riskScore.reasons, contains('Conexão insegura (HTTP) para serviço financeiro'));
+    });
+
+    test('should detect suspicious verification paths', () {
+      final payload = UrlPayload(Uri.parse('https://paypal.example.com/verify-account'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.suspicious));
+      expect(riskScore.reasons, contains('Padrão de URL suspeito para verificação/atualização'));
+    });
+
+    test('should detect social media impersonation', () {
+      final payload = UrlPayload(Uri.parse('https://facebook-login.ru/auth'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.danger));
+      expect(riskScore.reasons, contains('Imitação de rede social com domínio suspeito'));
+    });
+
+    test('should detect social login phishing', () {
+      final payload = UrlPayload(Uri.parse('https://fake-instagram.com/login'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.danger));
+      expect(riskScore.reasons, contains('Possível phishing de login de rede social'));
+    });
+
+    test('should detect password reset links', () {
+      final payload = UrlPayload(Uri.parse('https://example.com/reset-password'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.value, equals(15)); // 15 points for password reset
+      expect(riskScore.level, equals(RiskScore.safe)); // Still safe with only 15 points
+      expect(riskScore.reasons, contains('Link de redefinição de senha detectado - verifique a origem'));
+    });
+
+    test('should inform about legitimate social media access', () {
+      final payload = UrlPayload(Uri.parse('https://facebook.com/login'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.safe));
+      expect(riskScore.reasons, contains('Acesso a rede social detectado - verifique se é esperado'));
+    });
+
+    test('should detect Instagram impersonation with suspicious TLD', () {
+      final payload = UrlPayload(Uri.parse('https://instagram.tk/login'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.danger));
+      expect(riskScore.reasons, contains('Imitação de rede social com domínio suspeito'));
+    });
+
+    test('should detect WhatsApp phishing', () {
+      final payload = UrlPayload(Uri.parse('https://whatsapp-web.ml/auth'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.danger));
+      expect(riskScore.reasons, contains('Imitação de rede social com domínio suspeito'));
+    });
+
+    test('should detect URL shorteners with warning', () {
+      final payload = UrlPayload(Uri.parse('https://bit.ly/abc123'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.safe));
+      expect(riskScore.reasons, contains('🔗 Link encurtado detectado - verifique quem enviou antes de clicar'));
+    });
+
+    test('should provide security warning for legitimate government sites', () {
+      final payload = UrlPayload(Uri.parse('https://receita.fazenda.gov.br/senha'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.safe));
+      expect(riskScore.reasons, contains('🏛️ Site governamental LEGÍTIMO - Para segurança: faça apenas em casa, com pessoa de confiança, nunca por orientação telefônica'));
+    });
+
+    test('should provide security warning for legitimate banking sites', () {
+      final payload = UrlPayload(Uri.parse('https://itau.com.br/login'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.safe));
+      expect(riskScore.reasons, contains('🏦 Banco LEGÍTIMO - ATENÇÃO: Nunca acesse por links de terceiros, sempre digite o endereço manualmente'));
+    });
+
+    test('should warn about legitimate cryptocurrency exchanges', () {
+      final payload = UrlPayload(Uri.parse('https://binance.com/login'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.safe));
+      expect(riskScore.reasons, contains('₿ Exchange de criptomoedas LEGÍTIMA - ALTO RISCO: Nunca compartilhe chaves privadas, use autenticação 2FA'));
+    });
+
+    test('should detect direct IP access', () {
+      final payload = UrlPayload(Uri.parse('http://192.168.1.1/admin'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.danger)); // 35 IP + 30 admin path = 65 points
+      expect(riskScore.reasons, contains('Acesso direto por IP detectado - pode ser suspeito'));
+    });
+
+    test('should detect suspicious ports', () {
+      final payload = UrlPayload(Uri.parse('https://example.com:8080/admin'));
+      const signals = Signals();
+
+      final riskScore = computeRisk(payload, signals);
+
+      expect(riskScore.level, equals(RiskScore.danger)); // 20 port + 30 admin path = 50 points
+      expect(riskScore.reasons, contains('Porta não padrão detectada (8080) - verifique a origem'));
     });
   });
 }
