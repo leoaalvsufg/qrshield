@@ -10,6 +10,49 @@ import 'package:qrshield/features/scan/presentation/widgets/scan_view.dart';
 class ScanPage extends ConsumerWidget {
   const ScanPage({super.key});
 
+  /// Show dialog for manual QR code input
+  void _showManualInputDialog(BuildContext context) {
+    final controller = TextEditingController();
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Inserir QR Code'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Cole ou digite o conteúdo do QR Code:'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Ex: https://example.com ou conteúdo PIX...',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final content = controller.text.trim();
+              if (content.isNotEmpty) {
+                Navigator.pop(context);
+                context.goReport(content);
+              }
+            },
+            child: const Text('Analisar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scanState = ref.watch(scanControllerProvider);
@@ -95,8 +138,47 @@ class ScanPage extends ConsumerWidget {
 
                 // Add demo buttons for web testing
                 if (kIsWeb) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 32,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          '📱 Para escanear QR Codes reais',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Use o QRShield em um dispositivo móvel (Android/iOS)',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Manual input for testing real QR codes
+                  ElevatedButton.icon(
+                    onPressed: () => _showManualInputDialog(context),
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Inserir QR Code Manualmente'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
                   const Text(
-                    'Teste o QRShield com exemplos:',
+                    '🧪 Ou teste com exemplos pré-definidos:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),

@@ -31,8 +31,89 @@
 
   <title>qrshield</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- ZXing library for QR code scanning -->
+  <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 </head>
 <body>
+  <!-- Hidden video element for QR scanning -->
+  <video id="qr-video" style="display: none;" width="300" height="200"></video>
+
+  <!-- QR Scanner Web Implementation -->
+  <script>
+    // Global QR scanner instance
+    let codeReader = null;
+    let selectedDeviceId = null;
+    let isScanning = false;
+
+    // Initialize QR scanner
+    function initQRScanner() {
+      if (typeof ZXing !== 'undefined') {
+        codeReader = new ZXing.BrowserQRCodeReader();
+        console.log('QR Scanner initialized');
+        return true;
+      }
+      return false;
+    }
+
+    // Start QR scanning
+    async function startQRScanning() {
+      if (isScanning) return null;
+
+      if (!codeReader) {
+        if (!initQRScanner()) {
+          throw new Error('QR Scanner not available');
+        }
+      }
+
+      try {
+        isScanning = true;
+        const videoInputDevices = await codeReader.listVideoInputDevices();
+        selectedDeviceId = videoInputDevices[0]?.deviceId;
+
+        if (!selectedDeviceId) {
+          throw new Error('No camera found');
+        }
+
+        // Start scanning with timeout
+        const result = await Promise.race([
+          codeReader.decodeOnceFromVideoDevice(selectedDeviceId, 'qr-video'),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Scanning timeout')), 30000)
+          )
+        ]);
+
+        isScanning = false;
+        return result.text;
+      } catch (err) {
+        isScanning = false;
+        console.error('QR Scanning error:', err);
+        throw err;
+      }
+    }
+
+    // Stop QR scanning
+    function stopQRScanning() {
+      if (codeReader) {
+        codeReader.reset();
+      }
+      isScanning = false;
+    }
+
+    // Expose functions to Flutter
+    window.qrScanner = {
+      start: startQRScanning,
+      stop: stopQRScanning,
+      init: initQRScanner,
+      isScanning: () => isScanning
+    };
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initQRScanner();
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

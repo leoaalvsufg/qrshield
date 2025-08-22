@@ -43,6 +43,10 @@ dependencies:
   camera: ^0.11.0+2
   google_mlkit_barcode_scanning: ^0.13.0
 
+  # Web QR scanning (real implementation like Prezenzaa)
+  js: ^0.6.7
+  html: ^0.15.4
+
   # HTTP requests
   http: ^1.2.2
 

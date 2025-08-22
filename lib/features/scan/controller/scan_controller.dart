@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:qrshield/core/services/web_qr_scanner.dart';
 
 /// Scan state
 enum ScanStatus {
@@ -145,9 +146,8 @@ class ScanController extends StateNotifier<ScanState> {
 
     // Check if image streaming is supported (not available on web)
     if (kIsWeb) {
-      // For web, we'll use a different approach - simulate scanning
-      state = state.copyWith(status: ScanStatus.scanning);
-      _simulateWebScanning();
+      // For web, use the real web QR scanner
+      await _startWebScanning();
       return;
     }
 
@@ -171,19 +171,34 @@ class ScanController extends StateNotifier<ScanState> {
     }
   }
 
-  /// Simulate scanning for web platform
-  void _simulateWebScanning() {
-    // For web demo, we'll provide a way to manually input QR code content
-    // In a real implementation, this could use a different camera API or file upload
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted && state.isScanning) {
-        // Simulate detecting a demo QR code
+  /// Handle web scanning with real QR scanner
+  Future<void> _startWebScanning() async {
+    if (!WebQRScanner.isAvailable) {
+      state = state.copyWith(
+        status: ScanStatus.error,
+        errorMessage: 'Scanner QR não disponível neste navegador. Use os botões de teste abaixo.',
+      );
+      return;
+    }
+
+    try {
+      state = state.copyWith(status: ScanStatus.scanning);
+      final result = await WebQRScanner.startScanning();
+
+      if (mounted) {
         state = state.copyWith(
           status: ScanStatus.detected,
-          rawPayload: 'https://example.com/demo-qr-code',
+          rawPayload: result,
         );
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(
+          status: ScanStatus.error,
+          errorMessage: 'Erro ao escanear: $e',
+        );
+      }
+    }
   }
 
   /// Process camera image for barcode detection
