@@ -143,8 +143,24 @@ class ScanController extends StateNotifier<ScanState> {
       return;
     }
 
-    await _cameraController!.startImageStream(_processCameraImage);
-    state = state.copyWith(status: ScanStatus.scanning);
+    // Check if image streaming is supported (not available on web)
+    if (kIsWeb) {
+      // For web, we'll use a different approach - simulate scanning
+      state = state.copyWith(status: ScanStatus.scanning);
+      _simulateWebScanning();
+      return;
+    }
+
+    try {
+      await _cameraController!.startImageStream(_processCameraImage);
+      state = state.copyWith(status: ScanStatus.scanning);
+    } catch (e) {
+      // Fallback for platforms that don't support image streaming
+      state = state.copyWith(
+        status: ScanStatus.error,
+        errorMessage: 'Streaming de câmera não suportado nesta plataforma. Use um dispositivo móvel para melhor experiência.',
+      );
+    }
   }
 
   /// Stop image stream
@@ -155,8 +171,23 @@ class ScanController extends StateNotifier<ScanState> {
     }
   }
 
+  /// Simulate scanning for web platform
+  void _simulateWebScanning() {
+    // For web demo, we'll provide a way to manually input QR code content
+    // In a real implementation, this could use a different camera API or file upload
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && state.isScanning) {
+        // Simulate detecting a demo QR code
+        state = state.copyWith(
+          status: ScanStatus.detected,
+          rawPayload: 'https://example.com/demo-qr-code',
+        );
+      }
+    });
+  }
+
   /// Process camera image for barcode detection
-  void _processCameraImage(CameraImage image) async {
+  Future<void> _processCameraImage(CameraImage image) async {
     if (_isProcessing || _barcodeScanner == null) return;
 
     _isProcessing = true;
@@ -243,8 +274,6 @@ class ScanController extends StateNotifier<ScanState> {
   void resetScan() {
     state = state.copyWith(
       status: ScanStatus.ready,
-      rawPayload: null,
-      errorMessage: null,
     );
 
     if (state.isScanning && _cameraController != null) {

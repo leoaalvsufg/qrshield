@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qrshield/app/router.dart';
@@ -69,31 +70,75 @@ class ScanPage extends ConsumerWidget {
 
       case ScanStatus.error:
         return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                StringsPt.scanError,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                state.errorMessage ?? 'Erro desconhecido',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Voltar'),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  StringsPt.scanError,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  state.errorMessage ?? 'Erro desconhecido',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+
+                // Add demo buttons for web testing
+                if (kIsWeb) ...[
+                  const Text(
+                    'Teste o QRShield com exemplos:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+
+                  ElevatedButton.icon(
+                    onPressed: () => context.goReport('https://example.com'),
+                    icon: const Icon(Icons.link),
+                    label: const Text('Testar URL Segura'),
+                  ),
+                  const SizedBox(height: 8),
+
+                  ElevatedButton.icon(
+                    onPressed: () => context.goReport('javascript:alert("xss")'),
+                    icon: const Icon(Icons.warning),
+                    label: const Text('Testar URL Perigosa'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  ElevatedButton.icon(
+                    onPressed: () => context.goReport('00020126580014br.gov.bcb.pix0136123e4567-e12b-12d3-a456-426614174000520400005303986540510.005802BR5913FULANO DE TAL6008BRASILIA62070503***6304A4F3'),
+                    icon: const Icon(Icons.pix),
+                    label: const Text('Testar PIX'),
+                  ),
+                  const SizedBox(height: 8),
+
+                  ElevatedButton.icon(
+                    onPressed: () => context.goReport('WIFI:S:MinhaRede;T:WPA;P:senha123;H:false;'),
+                    icon: const Icon(Icons.wifi),
+                    label: const Text('Testar WiFi'),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Voltar'),
+                ),
+              ],
+            ),
           ),
         );
 
