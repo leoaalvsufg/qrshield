@@ -4,7 +4,7 @@ import 'package:qrshield/core/domain/pix_emv.dart';
 /// Classifies raw QR code content into appropriate payload types
 Payload classify(String raw) {
   final trimmed = raw.trim();
-  
+
   // Check for specific schemes first before general URL parsing
   if (trimmed.startsWith('tel:')) {
     return SimplePayload('tel', trimmed);
@@ -41,7 +41,7 @@ Payload classify(String raw) {
   } catch (e) {
     // Not a valid URI, continue with other checks
   }
-  
+
   // Check for PIX EMV/BR Code
   if (_isPixEmv(trimmed)) {
     final analysis = analyzePixEmv(trimmed);
@@ -52,14 +52,12 @@ Payload classify(String raw) {
       fields: analysis.fields,
     );
   }
-  
+
   // Check for WiFi QR code
   if (trimmed.startsWith('WIFI:')) {
     return _parseWifi(trimmed);
   }
-  
 
-  
   // Default to text
   return SimplePayload('text', trimmed);
 }
@@ -95,7 +93,7 @@ bool _isDeepLink(String scheme) {
     'googlemaps',
     'applemaps',
   };
-  
+
   return deepLinkSchemes.contains(scheme.toLowerCase());
 }
 
@@ -111,7 +109,8 @@ bool _isPixEmv(String content) {
   if (content.contains('br.gov.bcb.pix')) return true;
 
   // Check if it contains mostly alphanumeric characters (EMV TLV format)
-  final alphanumericCount = content.split('').where((c) => RegExp('[A-Z0-9]').hasMatch(c)).length;
+  final alphanumericCount =
+      content.split('').where((c) => RegExp('[A-Z0-9]').hasMatch(c)).length;
   final alphanumericRatio = alphanumericCount / content.length;
 
   // EMV codes should be mostly alphanumeric and uppercase
@@ -123,13 +122,13 @@ WifiPayload _parseWifi(String content) {
   // WIFI:S:<SSID>;T:<WPA|WEP|nopass>;P:<password>;H:<true|false>;
   final regex = RegExp('WIFI:S:([^;]*);T:([^;]*);P:([^;]*);H:([^;]*);?');
   final match = regex.firstMatch(content);
-  
+
   if (match != null) {
     final ssid = match.group(1) ?? '';
     final security = match.group(2) ?? '';
     final password = match.group(3);
     final hiddenStr = match.group(4) ?? 'false';
-    
+
     return WifiPayload(
       ssid: ssid,
       sec: security,
@@ -137,10 +136,7 @@ WifiPayload _parseWifi(String content) {
       hidden: hiddenStr.toLowerCase() == 'true',
     );
   }
-  
+
   // Fallback for malformed WiFi QR codes
-  return WifiPayload(
-    ssid: 'Unknown',
-    sec: 'unknown',
-  );
+  return WifiPayload(ssid: 'Unknown', sec: 'unknown');
 }

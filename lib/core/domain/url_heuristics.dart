@@ -1,5 +1,6 @@
 /// URL heuristics analysis result
-class UrlHeuristicsResult { // domínios conhecidos
+class UrlHeuristicsResult {
+  // domínios conhecidos
 
   const UrlHeuristicsResult({
     required this.isBlockedScheme,
@@ -90,7 +91,8 @@ UrlHeuristicsResult analyzeUrl(Uri url) {
     'zaap.bio',
   };
 
-  final looksShortener = shortenerDomains.contains(host) ||
+  final looksShortener =
+      shortenerDomains.contains(host) ||
       shortenerDomains.any((domain) => host.endsWith('.$domain'));
 
   return UrlHeuristicsResult(
@@ -109,11 +111,9 @@ bool isDomainSuspicious(String domain) {
     // Homograph attacks
     RegExp('[а-я]'), // Cyrillic characters
     RegExp('[αβγδεζηθικλμνξοπρστυφχψω]'), // Greek characters
-
     // Suspicious character combinations
     RegExp('[0-9]{4,}'), // Long sequences of numbers
     RegExp('[a-z]{20,}'), // Very long sequences of letters
-
     // Common typosquatting patterns
     RegExp('(goog1e|fac3book|amaz0n|micr0soft|app1e)'),
 

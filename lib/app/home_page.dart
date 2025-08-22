@@ -62,43 +62,46 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Security tips
               Text(
                 'Dicas de segurança',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
-              
+
               Expanded(
                 child: ListView(
                   children: const [
                     _SecurityTipCard(
                       icon: Icons.warning_amber,
                       title: 'Nunca abra links automaticamente',
-                      description: 'Sempre analise o destino antes de abrir qualquer QR Code.',
+                      description:
+                          'Sempre analise o destino antes de abrir qualquer QR Code.',
                       color: Colors.orange,
                     ),
                     SizedBox(height: 12),
                     _SecurityTipCard(
                       icon: Icons.shield,
                       title: 'Verifique a origem',
-                      description: 'Confirme se o QR Code vem de uma fonte confiável.',
+                      description:
+                          'Confirme se o QR Code vem de uma fonte confiável.',
                       color: Colors.blue,
                     ),
                     SizedBox(height: 12),
                     _SecurityTipCard(
                       icon: Icons.visibility,
                       title: 'Examine URLs suspeitas',
-                      description: 'Desconfie de links encurtados ou domínios estranhos.',
+                      description:
+                          'Desconfie de links encurtados ou domínios estranhos.',
                       color: Colors.green,
                     ),
                   ],
                 ),
               ),
-              
+
               // How it works button
               OutlinedButton.icon(
                 onPressed: () => context.goSettings(),
@@ -114,7 +117,6 @@ class HomePage extends StatelessWidget {
 }
 
 class _SecurityTipCard extends StatelessWidget {
-
   const _SecurityTipCard({
     required this.icon,
     required this.title,
@@ -139,11 +141,7 @@ class _SecurityTipCard extends StatelessWidget {
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(

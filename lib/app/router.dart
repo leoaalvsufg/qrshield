@@ -11,7 +11,7 @@ class AppRouter {
   static const String scan = '/scan';
   static const String report = '/report';
   static const String settings = '/settings';
-  
+
   static final GoRouter router = GoRouter(
     initialLocation: home,
     routes: [
@@ -43,38 +43,33 @@ class AppRouter {
         builder: (context, state) => const SettingsPage(),
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      appBar: AppBar(
-        title: const Text('Erro'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
+    errorBuilder:
+        (context, state) => Scaffold(
+          appBar: AppBar(title: const Text('Erro')),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Página não encontrada',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'A página "${state.uri}" não existe.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => context.go(home),
+                  child: const Text('Voltar ao início'),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Página não encontrada',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'A página "${state.uri}" não existe.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => context.go(home),
-              child: const Text('Voltar ao início'),
-            ),
-          ],
+          ),
         ),
-      ),
-    ),
   );
 }
 
@@ -82,16 +77,16 @@ class AppRouter {
 extension AppRouterExtension on BuildContext {
   /// Navigate to home page
   void goHome() => go(AppRouter.home);
-  
+
   /// Navigate to scan page
   void goScan() => go(AppRouter.scan);
-  
+
   /// Navigate to report page with payload
   void goReport(String rawPayload) => go(AppRouter.report, extra: rawPayload);
-  
+
   /// Navigate to settings page
   void goSettings() => go(AppRouter.settings);
-  
+
   /// Pop current route
   void goBack() => pop();
 }

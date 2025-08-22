@@ -5,7 +5,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 /// Settings state
 class SettingsState {
-  
   const SettingsState({
     this.themeMode = ThemeMode.system,
     this.enableReputationCheck = true,
@@ -18,7 +17,7 @@ class SettingsState {
   final bool enableUrlExpansion;
   final String appVersion;
   final String buildNumber;
-  
+
   SettingsState copyWith({
     ThemeMode? themeMode,
     bool? enableReputationCheck,
@@ -28,13 +27,14 @@ class SettingsState {
   }) {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
-      enableReputationCheck: enableReputationCheck ?? this.enableReputationCheck,
+      enableReputationCheck:
+          enableReputationCheck ?? this.enableReputationCheck,
       enableUrlExpansion: enableUrlExpansion ?? this.enableUrlExpansion,
       appVersion: appVersion ?? this.appVersion,
       buildNumber: buildNumber ?? this.buildNumber,
     );
   }
-  
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -45,7 +45,7 @@ class SettingsState {
           enableUrlExpansion == other.enableUrlExpansion &&
           appVersion == other.appVersion &&
           buildNumber == other.buildNumber;
-  
+
   @override
   int get hashCode =>
       themeMode.hashCode ^
@@ -57,7 +57,6 @@ class SettingsState {
 
 /// Settings controller
 class SettingsController extends StateNotifier<SettingsState> {
-  
   SettingsController() : super(const SettingsState()) {
     _loadSettings();
     _loadAppInfo();
@@ -66,18 +65,18 @@ class SettingsController extends StateNotifier<SettingsState> {
   static const _themeModeKey = 'theme_mode';
   static const _reputationCheckKey = 'enable_reputation_check';
   static const _urlExpansionKey = 'enable_url_expansion';
-  
+
   /// Load settings from secure storage
   Future<void> _loadSettings() async {
     try {
       final themeModeStr = await _storage.read(key: _themeModeKey);
       final reputationCheckStr = await _storage.read(key: _reputationCheckKey);
       final urlExpansionStr = await _storage.read(key: _urlExpansionKey);
-      
+
       final themeMode = _parseThemeMode(themeModeStr);
       final enableReputationCheck = reputationCheckStr != 'false';
       final enableUrlExpansion = urlExpansionStr != 'false';
-      
+
       state = state.copyWith(
         themeMode: themeMode,
         enableReputationCheck: enableReputationCheck,
@@ -87,7 +86,7 @@ class SettingsController extends StateNotifier<SettingsState> {
       // Use default settings if loading fails
     }
   }
-  
+
   /// Load app information
   Future<void> _loadAppInfo() async {
     try {
@@ -100,32 +99,32 @@ class SettingsController extends StateNotifier<SettingsState> {
       // Use default values if loading fails
     }
   }
-  
+
   /// Set theme mode
   Future<void> setThemeMode(ThemeMode themeMode) async {
     state = state.copyWith(themeMode: themeMode);
     await _storage.write(key: _themeModeKey, value: themeMode.name);
   }
-  
+
   /// Toggle reputation check
   Future<void> setReputationCheck(bool enabled) async {
     state = state.copyWith(enableReputationCheck: enabled);
     await _storage.write(key: _reputationCheckKey, value: enabled.toString());
   }
-  
+
   /// Toggle URL expansion
   Future<void> setUrlExpansion(bool enabled) async {
     state = state.copyWith(enableUrlExpansion: enabled);
     await _storage.write(key: _urlExpansionKey, value: enabled.toString());
   }
-  
+
   /// Reset all settings to defaults
   Future<void> resetSettings() async {
     await _storage.deleteAll();
     state = const SettingsState();
     await _loadAppInfo();
   }
-  
+
   ThemeMode _parseThemeMode(String? value) {
     switch (value) {
       case 'light':
@@ -140,9 +139,10 @@ class SettingsController extends StateNotifier<SettingsState> {
 }
 
 /// Settings controller provider
-final settingsControllerProvider = StateNotifierProvider<SettingsController, SettingsState>(
-  (ref) => SettingsController(),
-);
+final settingsControllerProvider =
+    StateNotifierProvider<SettingsController, SettingsState>(
+      (ref) => SettingsController(),
+    );
 
 /// Theme mode provider (convenience)
 final themeModeProvider = Provider<ThemeMode>((ref) {

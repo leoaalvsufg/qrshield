@@ -12,16 +12,19 @@ void main() {
         'vbscript:msgbox("test")',
         'about:blank',
       ];
-      
+
       for (final testCase in testCases) {
         final uri = Uri.parse(testCase);
         final result = analyzeUrl(uri);
-        
-        expect(result.isBlockedScheme, isTrue, 
-            reason: 'Should detect blocked scheme in: $testCase');
+
+        expect(
+          result.isBlockedScheme,
+          isTrue,
+          reason: 'Should detect blocked scheme in: $testCase',
+        );
       }
     });
-    
+
     test('should not flag safe schemes', () {
       final testCases = [
         'https://example.com',
@@ -30,48 +33,57 @@ void main() {
         'mailto:test@example.com',
         'tel:+5511999999999',
       ];
-      
+
       for (final testCase in testCases) {
         final uri = Uri.parse(testCase);
         final result = analyzeUrl(uri);
-        
-        expect(result.isBlockedScheme, isFalse,
-            reason: 'Should not flag safe scheme in: $testCase');
+
+        expect(
+          result.isBlockedScheme,
+          isFalse,
+          reason: 'Should not flag safe scheme in: $testCase',
+        );
       }
     });
-    
+
     test('should detect punycode domains', () {
       final testCases = [
         'https://xn--e1afmkfd.xn--p1ai', // пример.рф
         'https://xn--fsq.xn--0zwm56d', // 中国
         'https://subdomain.xn--example-abc.com',
       ];
-      
+
       for (final testCase in testCases) {
         final uri = Uri.parse(testCase);
         final result = analyzeUrl(uri);
-        
-        expect(result.hasPunycode, isTrue,
-            reason: 'Should detect punycode in: $testCase');
+
+        expect(
+          result.hasPunycode,
+          isTrue,
+          reason: 'Should detect punycode in: $testCase',
+        );
       }
     });
-    
+
     test('should not flag regular domains as punycode', () {
       final testCases = [
         'https://example.com',
         'https://subdomain.example.org',
         'https://test-site.co.uk',
       ];
-      
+
       for (final testCase in testCases) {
         final uri = Uri.parse(testCase);
         final result = analyzeUrl(uri);
-        
-        expect(result.hasPunycode, isFalse,
-            reason: 'Should not flag regular domain as punycode: $testCase');
+
+        expect(
+          result.hasPunycode,
+          isFalse,
+          reason: 'Should not flag regular domain as punycode: $testCase',
+        );
       }
     });
-    
+
     test('should detect URL shorteners', () {
       final testCases = [
         'https://bit.ly/abc123',
@@ -81,16 +93,19 @@ void main() {
         'https://short.link/test',
         'https://linktr.ee/username',
       ];
-      
+
       for (final testCase in testCases) {
         final uri = Uri.parse(testCase);
         final result = analyzeUrl(uri);
-        
-        expect(result.looksShortener, isTrue,
-            reason: 'Should detect shortener: $testCase');
+
+        expect(
+          result.looksShortener,
+          isTrue,
+          reason: 'Should detect shortener: $testCase',
+        );
       }
     });
-    
+
     test('should not flag regular domains as shorteners', () {
       final testCases = [
         'https://example.com',
@@ -98,16 +113,19 @@ void main() {
         'https://github.com',
         'https://stackoverflow.com',
       ];
-      
+
       for (final testCase in testCases) {
         final uri = Uri.parse(testCase);
         final result = analyzeUrl(uri);
-        
-        expect(result.looksShortener, isFalse,
-            reason: 'Should not flag regular domain as shortener: $testCase');
+
+        expect(
+          result.looksShortener,
+          isFalse,
+          reason: 'Should not flag regular domain as shortener: $testCase',
+        );
       }
     });
-    
+
     test('should detect suspicious domains', () {
       final testCases = [
         'goog1e.com', // Typosquatting
@@ -118,15 +136,18 @@ void main() {
         'test.tk', // Suspicious TLD
         'example.ml',
       ];
-      
+
       for (final testCase in testCases) {
         final isSuspicious = isDomainSuspicious(testCase);
-        
-        expect(isSuspicious, isTrue,
-            reason: 'Should detect suspicious domain: $testCase');
+
+        expect(
+          isSuspicious,
+          isTrue,
+          reason: 'Should detect suspicious domain: $testCase',
+        );
       }
     });
-    
+
     test('should not flag legitimate domains as suspicious', () {
       final testCases = [
         'google.com',
@@ -137,15 +158,18 @@ void main() {
         'github.com',
         'stackoverflow.com',
       ];
-      
+
       for (final testCase in testCases) {
         final isSuspicious = isDomainSuspicious(testCase);
-        
-        expect(isSuspicious, isFalse,
-            reason: 'Should not flag legitimate domain as suspicious: $testCase');
+
+        expect(
+          isSuspicious,
+          isFalse,
+          reason: 'Should not flag legitimate domain as suspicious: $testCase',
+        );
       }
     });
-    
+
     test('should extract effective domain correctly', () {
       final testCases = {
         'https://www.example.com/path': 'example.com',
@@ -153,13 +177,16 @@ void main() {
         'https://api.service.example.org': 'example.org',
         'https://example.com': 'example.com',
       };
-      
+
       testCases.forEach((url, expectedDomain) {
         final uri = Uri.parse(url);
         final effectiveDomain = getEffectiveDomain(uri);
-        
-        expect(effectiveDomain, equals(expectedDomain),
-            reason: 'Should extract correct effective domain from: $url');
+
+        expect(
+          effectiveDomain,
+          equals(expectedDomain),
+          reason: 'Should extract correct effective domain from: $url',
+        );
       });
     });
   });

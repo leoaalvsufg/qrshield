@@ -13,7 +13,7 @@ class ScanPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scanState = ref.watch(scanControllerProvider);
     final scanController = ref.read(scanControllerProvider.notifier);
-    
+
     // Listen for detected QR codes
     ref.listen<ScanState>(scanControllerProvider, (previous, current) {
       if (current.status == ScanStatus.detected && current.rawPayload != null) {
@@ -21,7 +21,7 @@ class ScanPage extends ConsumerWidget {
         context.goReport(current.rawPayload!);
       }
     });
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(StringsPt.scanTitle),
@@ -33,22 +33,27 @@ class ScanPage extends ConsumerWidget {
               onPressed: scanController.switchCamera,
               tooltip: StringsPt.scanSwitchCamera,
             ),
-          
+
           // Pause/resume button
           IconButton(
-            icon: Icon(
-              scanState.isScanning ? Icons.pause : Icons.play_arrow,
-            ),
+            icon: Icon(scanState.isScanning ? Icons.pause : Icons.play_arrow),
             onPressed: scanController.toggleScanning,
-            tooltip: scanState.isScanning ? StringsPt.scanPause : StringsPt.scanResume,
+            tooltip:
+                scanState.isScanning
+                    ? StringsPt.scanPause
+                    : StringsPt.scanResume,
           ),
         ],
       ),
       body: _buildBody(context, scanState, scanController),
     );
   }
-  
-  Widget _buildBody(BuildContext context, ScanState state, ScanController controller) {
+
+  Widget _buildBody(
+    BuildContext context,
+    ScanState state,
+    ScanController controller,
+  ) {
     switch (state.status) {
       case ScanStatus.initializing:
         return const Center(
@@ -61,7 +66,7 @@ class ScanPage extends ConsumerWidget {
             ],
           ),
         );
-        
+
       case ScanStatus.error:
         return Center(
           child: Column(
@@ -91,7 +96,7 @@ class ScanPage extends ConsumerWidget {
             ],
           ),
         );
-        
+
       case ScanStatus.permissionDenied:
         return Center(
           child: Column(
@@ -121,7 +126,7 @@ class ScanPage extends ConsumerWidget {
             ],
           ),
         );
-        
+
       case ScanStatus.ready:
       case ScanStatus.scanning:
       case ScanStatus.detected:

@@ -3,7 +3,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Interstitial dialog that warns users before opening potentially dangerous content
 class InterstitialDialog extends StatefulWidget {
-  
   const InterstitialDialog({
     super.key,
     required this.title,
@@ -19,7 +18,7 @@ class InterstitialDialog extends StatefulWidget {
   final int redirects;
   final VoidCallback? onProceed;
   final VoidCallback? onCancel;
-  
+
   /// Shows the interstitial dialog
   static Future<bool?> show({
     required BuildContext context,
@@ -31,24 +30,25 @@ class InterstitialDialog extends StatefulWidget {
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => InterstitialDialog(
-        title: title,
-        url: url,
-        warnings: warnings,
-        redirects: redirects,
-        onProceed: () => Navigator.of(context).pop(true),
-        onCancel: () => Navigator.of(context).pop(false),
-      ),
+      builder:
+          (context) => InterstitialDialog(
+            title: title,
+            url: url,
+            warnings: warnings,
+            redirects: redirects,
+            onProceed: () => Navigator.of(context).pop(true),
+            onCancel: () => Navigator.of(context).pop(false),
+          ),
     );
   }
-  
+
   @override
   State<InterstitialDialog> createState() => _InterstitialDialogState();
 }
 
 class _InterstitialDialogState extends State<InterstitialDialog> {
   bool _acknowledgeRisks = false;
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -57,10 +57,7 @@ class _InterstitialDialogState extends State<InterstitialDialog> {
         color: Theme.of(context).colorScheme.error,
         size: 48,
       ),
-      title: Text(
-        widget.title,
-        textAlign: TextAlign.center,
-      ),
+      title: Text(widget.title, textAlign: TextAlign.center),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -86,9 +83,9 @@ class _InterstitialDialogState extends State<InterstitialDialog> {
                   const SizedBox(height: 4),
                   Text(
                     widget.url,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontFamily: 'monospace',
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(fontFamily: 'monospace'),
                   ),
                   if (widget.redirects > 0) ...[
                     const SizedBox(height: 8),
@@ -102,46 +99,50 @@ class _InterstitialDialogState extends State<InterstitialDialog> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Warnings
             if (widget.warnings.isNotEmpty) ...[
               Text(
                 'Motivos para cautela:',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              ...widget.warnings.map((warning) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.circle,
-                      size: 6,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        warning,
-                        style: Theme.of(context).textTheme.bodyMedium,
+              ...widget.warnings.map(
+                (warning) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.circle,
+                        size: 6,
+                        color: Theme.of(context).colorScheme.error,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          warning,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),),
+              ),
               const SizedBox(height: 16),
             ],
-            
+
             // Risk acknowledgment
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3),
+                color: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: Theme.of(context).colorScheme.error.withOpacity(0.3),
@@ -182,10 +183,7 @@ class _InterstitialDialogState extends State<InterstitialDialog> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: widget.onCancel,
-          child: const Text('Cancelar'),
-        ),
+        TextButton(onPressed: widget.onCancel, child: const Text('Cancelar')),
         ElevatedButton(
           onPressed: _acknowledgeRisks ? widget.onProceed : null,
           style: ElevatedButton.styleFrom(
@@ -218,19 +216,16 @@ class SafeUrlLauncher {
         warnings: warnings,
         redirects: redirects,
       );
-      
+
       if (shouldProceed != true) {
         return false;
       }
     }
-    
+
     // Launch the URL
     try {
       final uri = Uri.parse(url);
-      return await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -243,7 +238,7 @@ class SafeUrlLauncher {
       return false;
     }
   }
-  
+
   /// Launches a deep link with interstitial protection
   static Future<bool> launchDeepLink({
     required BuildContext context,

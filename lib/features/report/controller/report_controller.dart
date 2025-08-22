@@ -9,14 +9,9 @@ import 'package:qrshield/core/services/url_expander.dart';
 import 'package:qrshield/features/settings/controller/settings_controller.dart';
 
 /// Report state
-enum ReportStatus {
-  analyzing,
-  ready,
-  error,
-}
+enum ReportStatus { analyzing, ready, error }
 
 class ReportState {
-  
   const ReportState({
     required this.rawPayload,
     this.status = ReportStatus.analyzing,
@@ -33,7 +28,7 @@ class ReportState {
   final Signals? signals;
   final String? errorMessage;
   final bool isAnalyzing;
-  
+
   ReportState copyWith({
     ReportStatus? status,
     String? rawPayload,
@@ -53,7 +48,7 @@ class ReportState {
       isAnalyzing: isAnalyzing ?? this.isAnalyzing,
     );
   }
-  
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -66,7 +61,7 @@ class ReportState {
           signals == other.signals &&
           errorMessage == other.errorMessage &&
           isAnalyzing == other.isAnalyzing;
-  
+
   @override
   int get hashCode =>
       status.hashCode ^
@@ -80,7 +75,6 @@ class ReportState {
 
 /// Report controller
 class ReportController extends StateNotifier<ReportState> {
-  
   ReportController(
     String rawPayload,
     this._reputationService,
@@ -92,20 +86,20 @@ class ReportController extends StateNotifier<ReportState> {
   final ReputationService _reputationService;
   final UrlExpander _urlExpander;
   final Ref _ref;
-  
+
   /// Analyze the payload
   Future<void> _analyzePayload() async {
     try {
       // Classify the payload
       final payload = classify(state.rawPayload);
       state = state.copyWith(payload: payload);
-      
+
       // Analyze signals
       final signals = await _analyzeSignals(payload);
-      
+
       // Compute risk score
       final riskScore = computeRisk(payload, signals);
-      
+
       state = state.copyWith(
         status: ReportStatus.ready,
         signals: signals,
@@ -118,11 +112,11 @@ class ReportController extends StateNotifier<ReportState> {
       );
     }
   }
-  
+
   /// Analyze signals for the payload
   Future<Signals> _analyzeSignals(Payload payload) async {
     final settings = _ref.read(settingsControllerProvider);
-    
+
     var reputationMatch = false;
     var redirects = 0;
     var hasPunycode = false;
@@ -131,13 +125,13 @@ class ReportController extends StateNotifier<ReportState> {
     var pixCrcInvalid = false;
     var pixGuiInvalid = false;
     var pixDomainUnknown = false;
-    
+
     // URL-specific analysis
     if (payload is UrlPayload) {
       final heuristics = analyzeUrl(payload.url);
       hasPunycode = heuristics.hasPunycode;
       blockedScheme = heuristics.isBlockedScheme;
-      
+
       // Reputation check (if enabled)
       if (settings.enableReputationCheck) {
         try {
@@ -146,7 +140,7 @@ class ReportController extends StateNotifier<ReportState> {
           // Continue without reputation check on error
         }
       }
-      
+
       // URL expansion (if enabled and is shortener)
       if (settings.enableUrlExpansion && heuristics.looksShortener) {
         try {
@@ -157,47 +151,51 @@ class ReportController extends StateNotifier<ReportState> {
         }
       }
     }
-    
+
     // Deep link analysis
     if (payload is DeeplinkPayload) {
       // Deep links are inherently more risky
       // Additional analysis could be added here
     }
-    
+
     // PIX analysis
     if (payload is PixPayload) {
       pixCrcInvalid = !payload.crcValid;
       pixGuiInvalid = payload.gui != 'br.gov.bcb.pix';
-      
+
       // Check for unknown domains in dynamic PIX
       if (payload.fields.containsKey('url')) {
         final url = payload.fields['url']!;
         try {
           final uri = Uri.parse(url);
           final domain = uri.host.toLowerCase();
-          
+
           // Simple allowlist of known PIX providers
           final knownProviders = {
             'pix.bcb.gov.br',
             'dict.pix.bcb.gov.br',
             // Add more known providers as needed
           };
-          
-          pixDomainUnknown = !knownProviders.any((provider) => 
-              domain == provider || domain.endsWith('.$provider'),);
+
+          pixDomainUnknown =
+              !knownProviders.any(
+                (provider) =>
+                    domain == provider || domain.endsWith('.$provider'),
+              );
         } catch (e) {
           pixDomainUnknown = true;
         }
       }
     }
-    
+
     // WiFi analysis
     if (payload is WifiPayload) {
-      wifiOpen = payload.sec.toLowerCase() == 'nopass' || 
-                 payload.sec.toLowerCase() == 'none' ||
-                 payload.password == null;
+      wifiOpen =
+          payload.sec.toLowerCase() == 'nopass' ||
+          payload.sec.toLowerCase() == 'none' ||
+          payload.password == null;
     }
-    
+
     return Signals(
       reputationMatch: reputationMatch,
       redirects: redirects,
@@ -209,18 +207,18 @@ class ReportController extends StateNotifier<ReportState> {
       pixDomainUnknown: pixDomainUnknown,
     );
   }
-  
+
   /// Perform additional analysis (user-triggered)
   Future<void> analyzeNow() async {
     if (state.isAnalyzing) return;
-    
+
     state = state.copyWith(isAnalyzing: true);
-    
+
     try {
       if (state.payload != null) {
         final signals = await _analyzeSignals(state.payload!);
         final riskScore = computeRisk(state.payload!, signals);
-        
+
         state = state.copyWith(
           signals: signals,
           riskScore: riskScore,
@@ -234,12 +232,12 @@ class ReportController extends StateNotifier<ReportState> {
       );
     }
   }
-  
+
   /// Copy payload to clipboard
   Future<void> copyToClipboard() async {
     await Clipboard.setData(ClipboardData(text: state.rawPayload));
   }
-  
+
   /// Get warnings for interstitial dialog
   List<String> getWarnings() {
     if (state.riskScore == null) return [];
@@ -248,19 +246,16 @@ class ReportController extends StateNotifier<ReportState> {
 }
 
 /// Report controller provider
-final reportControllerProvider = StateNotifierProvider.family<ReportController, ReportState, String>(
-  (ref, rawPayload) {
-    final reputationService = ref.read(reputationServiceProvider);
-    final urlExpander = ref.read(urlExpanderProvider);
-    
-    return ReportController(
-      rawPayload,
-      reputationService,
-      urlExpander,
+final reportControllerProvider =
+    StateNotifierProvider.family<ReportController, ReportState, String>((
       ref,
-    );
-  },
-);
+      rawPayload,
+    ) {
+      final reputationService = ref.read(reputationServiceProvider);
+      final urlExpander = ref.read(urlExpanderProvider);
+
+      return ReportController(rawPayload, reputationService, urlExpander, ref);
+    });
 
 /// Reputation service provider
 final reputationServiceProvider = Provider<ReputationService>((ref) {

@@ -21,7 +21,7 @@ class ScanState {
   final List<CameraDescription> cameras;
   final int selectedCameraIndex;
   final bool isScanning;
-  
+
   const ScanState({
     this.status = ScanStatus.initializing,
     this.rawPayload,
@@ -30,7 +30,7 @@ class ScanState {
     this.selectedCameraIndex = 0,
     this.isScanning = true,
   });
-  
+
   ScanState copyWith({
     ScanStatus? status,
     String? rawPayload,
@@ -48,7 +48,7 @@ class ScanState {
       isScanning: isScanning ?? this.isScanning,
     );
   }
-  
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -60,7 +60,7 @@ class ScanState {
           listEquals(cameras, other.cameras) &&
           selectedCameraIndex == other.selectedCameraIndex &&
           isScanning == other.isScanning;
-  
+
   @override
   int get hashCode =>
       status.hashCode ^
@@ -76,11 +76,11 @@ class ScanController extends StateNotifier<ScanState> {
   CameraController? _cameraController;
   BarcodeScanner? _barcodeScanner;
   bool _isProcessing = false;
-  
+
   ScanController() : super(const ScanState()) {
     _initializeCamera();
   }
-  
+
   /// Initialize camera and barcode scanner
   Future<void> _initializeCamera() async {
     try {
@@ -93,12 +93,12 @@ class ScanController extends StateNotifier<ScanState> {
         );
         return;
       }
-      
+
       state = state.copyWith(cameras: cameras);
-      
+
       // Initialize barcode scanner
       _barcodeScanner = BarcodeScanner();
-      
+
       // Initialize camera controller
       await _initializeCameraController();
     } catch (e) {
@@ -108,26 +108,26 @@ class ScanController extends StateNotifier<ScanState> {
       );
     }
   }
-  
+
   /// Initialize camera controller for selected camera
   Future<void> _initializeCameraController() async {
     try {
       final camera = state.cameras[state.selectedCameraIndex];
-      
+
       _cameraController = CameraController(
         camera,
         ResolutionPreset.high,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.yuv420,
       );
-      
+
       await _cameraController!.initialize();
-      
+
       // Start image stream for barcode detection
       if (state.isScanning) {
         await _startImageStream();
       }
-      
+
       state = state.copyWith(status: ScanStatus.ready);
     } catch (e) {
       state = state.copyWith(
@@ -136,38 +136,39 @@ class ScanController extends StateNotifier<ScanState> {
       );
     }
   }
-  
+
   /// Start image stream for barcode detection
   Future<void> _startImageStream() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
       return;
     }
-    
+
     await _cameraController!.startImageStream(_processCameraImage);
     state = state.copyWith(status: ScanStatus.scanning);
   }
-  
+
   /// Stop image stream
   Future<void> _stopImageStream() async {
-    if (_cameraController != null && _cameraController!.value.isStreamingImages) {
+    if (_cameraController != null &&
+        _cameraController!.value.isStreamingImages) {
       await _cameraController!.stopImageStream();
     }
   }
-  
+
   /// Process camera image for barcode detection
   void _processCameraImage(CameraImage image) async {
     if (_isProcessing || _barcodeScanner == null) return;
-    
+
     _isProcessing = true;
-    
+
     try {
       // Convert camera image to InputImage
       final inputImage = _inputImageFromCameraImage(image);
       if (inputImage == null) return;
-      
+
       // Scan for barcodes
       final barcodes = await _barcodeScanner!.processImage(inputImage);
-      
+
       // Process first detected barcode
       if (barcodes.isNotEmpty) {
         final barcode = barcodes.first;
@@ -185,18 +186,20 @@ class ScanController extends StateNotifier<ScanState> {
       _isProcessing = false;
     }
   }
-  
+
   /// Convert CameraImage to InputImage
   InputImage? _inputImageFromCameraImage(CameraImage image) {
     if (_cameraController == null) return null;
-    
+
     final camera = _cameraController!.description;
-    final rotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation);
+    final rotation = InputImageRotationValue.fromRawValue(
+      camera.sensorOrientation,
+    );
     if (rotation == null) return null;
-    
+
     final format = InputImageFormatValue.fromRawValue(image.format.raw as int);
     if (format == null) return null;
-    
+
     final plane = image.planes.first;
     return InputImage.fromBytes(
       bytes: plane.bytes,
@@ -208,37 +211,34 @@ class ScanController extends StateNotifier<ScanState> {
       ),
     );
   }
-  
+
   /// Switch to next camera
   Future<void> switchCamera() async {
     if (state.cameras.length <= 1) return;
-    
+
     await _stopImageStream();
     await _cameraController?.dispose();
-    
+
     final nextIndex = (state.selectedCameraIndex + 1) % state.cameras.length;
     state = state.copyWith(
       selectedCameraIndex: nextIndex,
       status: ScanStatus.initializing,
     );
-    
+
     await _initializeCameraController();
   }
-  
+
   /// Pause/resume scanning
   Future<void> toggleScanning() async {
     if (state.isScanning) {
       await _stopImageStream();
-      state = state.copyWith(
-        isScanning: false,
-        status: ScanStatus.ready,
-      );
+      state = state.copyWith(isScanning: false, status: ScanStatus.ready);
     } else {
       await _startImageStream();
       state = state.copyWith(isScanning: true);
     }
   }
-  
+
   /// Reset scan state
   void resetScan() {
     state = state.copyWith(
@@ -246,15 +246,15 @@ class ScanController extends StateNotifier<ScanState> {
       rawPayload: null,
       errorMessage: null,
     );
-    
+
     if (state.isScanning && _cameraController != null) {
       _startImageStream();
     }
   }
-  
+
   /// Get camera controller
   CameraController? get cameraController => _cameraController;
-  
+
   @override
   void dispose() {
     _stopImageStream();

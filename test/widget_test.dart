@@ -16,7 +16,10 @@ void main() {
 
     // Verify that the app loads and shows the home page.
     expect(find.text('QRShield'), findsOneWidget);
-    expect(find.text('Analise QR Codes com segurança antes de abrir'), findsOneWidget);
+    expect(
+      find.text('Analise QR Codes com segurança antes de abrir'),
+      findsOneWidget,
+    );
     expect(find.text('Escanear agora'), findsOneWidget);
   });
 }

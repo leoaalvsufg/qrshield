@@ -4,7 +4,6 @@ import 'package:qrshield/core/domain/risk_score.dart';
 
 /// Widget that displays a risk level badge with appropriate colors and icons
 class RiskBadge extends StatelessWidget {
-  
   const RiskBadge({
     super.key,
     required this.level,
@@ -12,7 +11,7 @@ class RiskBadge extends StatelessWidget {
     this.showScore = false,
     this.size,
   });
-  
+
   /// Creates a badge from a RiskScore
   factory RiskBadge.fromRiskScore(
     RiskScore riskScore, {
@@ -30,12 +29,12 @@ class RiskBadge extends StatelessWidget {
   final int? score;
   final bool showScore;
   final double? size;
-  
+
   @override
   Widget build(BuildContext context) {
     final config = _getRiskConfig(context);
     final badgeSize = size ?? 24.0;
-    
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: badgeSize * 0.5,
@@ -44,18 +43,12 @@ class RiskBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: config.color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(badgeSize * 0.5),
-        border: Border.all(
-          color: config.color.withOpacity(0.3),
-        ),
+        border: Border.all(color: config.color.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            config.icon,
-            color: config.color,
-            size: badgeSize,
-          ),
+          Icon(config.icon, color: config.color, size: badgeSize),
           SizedBox(width: badgeSize * 0.25),
           Text(
             config.label,
@@ -88,10 +81,10 @@ class RiskBadge extends StatelessWidget {
       ),
     );
   }
-  
+
   _RiskConfig _getRiskConfig(BuildContext context) {
     final appColors = context.appColors;
-    
+
     switch (level) {
       case RiskScore.safe:
         return _RiskConfig(
@@ -122,7 +115,6 @@ class RiskBadge extends StatelessWidget {
 }
 
 class _RiskConfig {
-  
   const _RiskConfig({
     required this.color,
     required this.icon,
@@ -135,37 +127,25 @@ class _RiskConfig {
 
 /// Compact version of RiskBadge for use in lists
 class CompactRiskBadge extends StatelessWidget {
-  
-  const CompactRiskBadge({
-    super.key,
-    required this.level,
-    this.size = 16.0,
-  });
+  const CompactRiskBadge({super.key, required this.level, this.size = 16.0});
   final String level;
   final double size;
-  
+
   @override
   Widget build(BuildContext context) {
     final config = _getRiskConfig(context);
-    
+
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: config.color,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        config.icon,
-        color: Colors.white,
-        size: size * 0.6,
-      ),
+      decoration: BoxDecoration(color: config.color, shape: BoxShape.circle),
+      child: Icon(config.icon, color: Colors.white, size: size * 0.6),
     );
   }
-  
+
   _RiskConfig _getRiskConfig(BuildContext context) {
     final appColors = context.appColors;
-    
+
     switch (level) {
       case RiskScore.safe:
         return _RiskConfig(
